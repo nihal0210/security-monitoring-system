@@ -8,14 +8,14 @@
 
 Modern enterprise backend architectures distribute logging information across disparate authentication services, databases, application routers, and session stores. This project establishes a centralized, backend-agnostic security monitoring and temporal visualization framework capable of collecting, normalizing, and correlating heterogeneous backend events.
 
-The system is partitioned into **TWO completely decoupled and independently runnable projects**:
+The system is partitioned into **TWO completely decoupled and independently runnable projects** plus a **Cross-Tab Real-Time Presentation Architecture**:
 
 ```text
 security-monitoring-system/
 │
 ├── controlled-backend-server/            # Node.js + Express + SQLite test environment
 │   ├── src/agent/monitoring-connector.js # Embedded monitoring connector normalizing events
-│   ├── src/routes/demo.js               # Controlled scenario triggers (A, B, C, D, E)
+│   ├── src/routes/demo.js               # Scenarios (Rules 1-5 + Module Activity + Night Lull)
 │   └── public/demo.html                 # Interactive test server control panel (:3000/demo)
 │
 └── security-monitoring-platform/         # Central monitoring system
@@ -24,7 +24,10 @@ security-monitoring-system/
     │   ├── app/services/correlation.py  # User -> Session -> IP -> Resource graph correlation
     │   ├── app/services/security_engine.py # Deterministic Rules 1 to 5
     │   └── app/services/historical.py   # Historical state reconstruction at timestamp T
-    └── frontend/                        # React + Vite + Cytoscape.js + SOC Dashboard (:5173)
+    └── frontend/                        # React 18 + Vite + Cytoscape + Module Downtime Optimizer
+        ├── src/components/ModuleUsageAnalytics.jsx # 9 Modules & Downtime Window Optimizer
+        ├── src/components/SimulationPanel.jsx      # Attack & Module Scenario Deck
+        └── src/services/eventBus.js                # Real-Time Cross-Tab Telemetry (BroadcastChannel)
 ```
 
 ```text
