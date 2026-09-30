@@ -1,0 +1,25 @@
+{
+  "name": "controlled-backend-server",
+  "version": "1.0.0",
+  "description": "Controlled Node.js Backend Test Environment for Security Monitoring Demonstration",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node src/server.js",
+    "test": "node --test test/backend.test.js"
+  },
+  "keywords": [
+    "security-monitoring",
+    "demonstration-backend",
+    "event-generation"
+  ],
+  "author": "Antigravity",
+  "license": "ISC",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "sqlite3": "^5.1.7",
+    "uuid": "^11.1.0"
+  }
+}

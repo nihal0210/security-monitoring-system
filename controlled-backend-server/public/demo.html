@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Controlled Backend Test Environment — Demonstration Panel</title>
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --surface-border: #e2e8f0;
+      --text-primary: #0f172a;
+      --text-secondary: #475569;
+      --text-muted: #64748b;
+      --accent: #2563eb;
+      --success: #059669;
+      --warning: #d97706;
+      --danger: #dc2626;
+      --code-bg: #f8fafc;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
+
+    body { background-color: var(--bg); color: var(--text-primary); padding: 24px; line-height: 1.5; }
+
+    .container { max-width: 1280px; margin: 0 auto; }
+
+    header {
+      background: var(--surface);
+      border: 1px solid var(--surface-border);
+      border-radius: 8px;
+      padding: 18px 24px;
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 1px 3px 0 rgba(15, 23, 42, 0.05);
+    }
+
+    .title-group h1 { font-size: 1.2rem; font-weight: 700; color: #0f172a; letter-spacing: -0.01em; }
+    .title-group p { font-size: 0.82rem; color: var(--text-secondary); margin-top: 3px; font-weight: 500; }
+
+    .status-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 5px 12px; border-radius: 9999px;
+      background: #ecfdf5; border: 1px solid #a7f3d0;
+      color: #047857; font-weight: 600; font-size: 0.82rem;
+    }
+
+    .status-dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: var(--success); animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; } 50% { opacity: 0.35; }
+    }
+
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .grid-3col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; margin-top: 20px; }
+
+    @media (max-width: 900px) {
+      .grid, .grid-3col { grid-template-columns: 1fr; }
+    }
+
+    .card {
+      background: var(--surface); border: 1px solid var(--surface-border);
+      border-radius: 8px; padding: 20px;
+      box-shadow: 0 1px 3px 0 rgba(15, 23, 42, 0.05);
+    }
+
+    .card h2 { font-size: 0.95rem; font-weight: 600; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; color: #0f172a; }
+    .card p.desc { font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 14px; line-height: 1.55; }
+
+    .button-stack { display: flex; flex-direction: column; gap: 10px; }
+
+    .btn {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 11px 14px; border-radius: 6px; border: 1px solid var(--surface-border);
+      background: #ffffff; color: #1e293b;
+      font-size: 0.875rem; font-weight: 600; cursor: pointer; transition: all 0.15s;
+      text-align: left;
+      box-shadow: 0 1px 2px 0 rgba(15, 23, 42, 0.04);
+    }
+
+    .btn:hover { background: #f8fafc; border-color: #cbd5e1; transform: translateY(-1px); }
+    .btn:active { transform: translateY(0); }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .btn .label-desc { font-size: 0.72rem; font-weight: 400; color: var(--text-secondary); margin-top: 2px; }
+
+    .btn-normal  { border-left: 4px solid #059669; }
+    .btn-warn    { border-left: 4px solid #d97706; }
+    .btn-danger  { border-left: 4px solid #dc2626; }
+    .btn-purple  { border-left: 4px solid #7c3aed; }
+    .btn-blue    { border-left: 4px solid #2563eb; }
+    .btn-reset   { border-left: 4px solid #d97706; }
+
+    .log-container { display: flex; flex-direction: column; }
+
+    .log-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+
+    .log-box {
+      height: 380px; background: var(--code-bg); border: 1px solid var(--surface-border);
+      border-radius: 6px; padding: 10px; overflow-y: auto;
+      font-family: "SFMono-Regular", Consolas, monospace; font-size: 0.75rem; color: #0f172a;
+    }
+
+    .log-entry { padding: 6px 0; border-bottom: 1px solid #f1f5f9; word-break: break-all; }
+    .log-time { color: #64748b; margin-right: 5px; font-weight: 500; }
+    .log-type { color: #1d4ed8; font-weight: 600; margin-right: 5px; }
+    .log-status { padding: 2px 6px; border-radius: 3px; font-size: 0.68rem; font-weight: 600; }
+    .status-success { background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; }
+    .status-failed  { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
+
+    .pill-count { background: #f1f5f9; padding: 2px 8px; border-radius: 10px; font-size: 0.72rem; color: #475569; border: 1px solid #e2e8f0; font-weight: 600; }
+
+    .info-table { width: 100%; border-collapse: collapse; font-size: 0.78rem; margin-top: 8px; }
+    .info-table th, .info-table td { padding: 8px 10px; border: 1px solid var(--surface-border); text-align: left; }
+    .info-table th { background: #f8fafc; color: #475569; font-weight: 600; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.04em; }
+    .info-table td { color: #1e293b; }
+
+    /* Pipeline visualizer */
+    .pipeline-step {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 0.75rem; color: var(--text-secondary); padding: 4px 0; font-weight: 500;
+    }
+    .pipeline-dot { width: 6px; height: 6px; border-radius: 50%; background: #cbd5e1; flex-shrink: 0; }
+    .pipeline-dot.active { background: var(--success); }
+
+    /* Reset panel */
+    .reset-card {
+      background: #fffbeb;
+      border: 1px solid #fde68a;
+      border-radius: 8px; padding: 20px;
+      box-shadow: 0 1px 3px 0 rgba(15, 23, 42, 0.05);
+    }
+    .reset-card h2 { color: #b45309; }
+
+    .reset-status {
+      margin-top: 12px; padding: 10px 14px; border-radius: 6px;
+      font-size: 0.8rem; font-family: monospace;
+      background: #ffffff; border: 1px solid #e2e8f0;
+      color: #475569; display: none;
+    }
+    .reset-status.visible { display: block; }
+    .reset-status.success { color: #047857; background: #ecfdf5; border-color: #a7f3d0; }
+    .reset-status.error { color: #b91c1c; background: #fef2f2; border-color: #fecaca; }
+
+    .section-label {
+      font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em;
+      color: #64748b; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--surface-border);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="title-group">
+        <h1>CONTROLLED BACKEND TEST SERVER</h1>
+        <p>Demonstration Control Panel &amp; Controlled Security Scenario Generator</p>
+      </div>
+      <div>
+        <span class="status-badge" id="serverStatusBadge">
+          <span class="status-dot"></span>
+          Server Status: ONLINE
+        </span>
+      </div>
+    </header>
+
+    <!-- Main grid: Scenarios + Event Log -->
+    <div class="grid">
+      <!-- Left: Scenario Controls -->
+      <div class="card">
+        <h2>Controlled Scenario Triggers</h2>
+        <p class="desc">
+          Each button performs realistic application activity on this backend.
+          The monitoring connector normalizes events and ships them to the security platform,
+          which independently detects suspicious patterns. No alerts are pre-formed here.
+        </p>
+
+        <div class="section-label">Normal Scenarios</div>
+        <div class="button-stack" style="margin-bottom: 14px;">
+          <button class="btn btn-normal" id="btn-normal-activity" onclick="triggerScenario('normal-activity', this)">
+            <div>
+              <div>Generate Normal Activity</div>
+              <div class="label-desc">U001 — Login → report.pdf → Logout (no alert expected)</div>
+            </div>
+            <span>→</span>
+          </button>
+        </div>
+
+        <div class="section-label">Suspicious Scenarios</div>
+        <div class="button-stack">
+          <button class="btn btn-warn" id="btn-repeated-failed-login" onclick="triggerScenario('repeated-failed-login', this)">
+            <div>
+              <div>Simulate Repeated Authentication Failure</div>
+              <div class="label-desc">U001 — 5 failed logins in rapid succession → 1 success</div>
+            </div>
+            <span>→</span>
+          </button>
+
+          <button class="btn btn-danger" id="btn-suspicious-login-sequence" onclick="triggerScenario('suspicious-login-sequence', this)">
+            <div>
+              <div>Simulate Suspicious Login Sequence</div>
+              <div class="label-desc">U003 — Failed logins → Success from external IP → system_config.json</div>
+            </div>
+            <span>→</span>
+          </button>
+
+          <button class="btn btn-purple" id="btn-multiple-ip-activity" onclick="triggerScenario('multiple-ip-activity', this)">
+            <div>
+              <div>Simulate Multiple IP Activity</div>
+              <div class="label-desc">U002 — Concurrent sessions from 3 distinct network subnets</div>
+            </div>
+            <span>→</span>
+          </button>
+
+          <button class="btn btn-blue" id="btn-abnormal-api-activity" onclick="triggerScenario('abnormal-api-activity', this)">
+            <div>
+              <div>Simulate Abnormal API Activity</div>
+              <div class="label-desc">U004 — Burst of 25 API requests in under 2 seconds</div>
+            </div>
+            <span>→</span>
+          </button>
+        </div>
+
+        <div style="margin-top: 20px;">
+          <div class="section-label">Seeded Demo Users</div>
+          <table class="info-table">
+            <thead>
+              <tr><th>ID</th><th>Name</th><th>Department</th><th>Pass</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><code>U001</code></td><td>Rahul Sharma</td><td>Engineering</td><td><code>password123</code></td></tr>
+              <tr><td><code>U002</code></td><td>Amit Patel</td><td>Finance</td><td><code>password123</code></td></tr>
+              <tr><td><code>U003</code></td><td>Priya Singh</td><td>Human Resources</td><td><code>password123</code></td></tr>
+              <tr><td><code>U004</code></td><td>Neha Gupta</td><td>Sales</td><td><code>password123</code></td></tr>
+              <tr><td><code>U005</code></td><td>Rohan Verma</td><td>Marketing</td><td><code>password123</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Right: Real-Time Event Feed -->
+      <div class="card log-container">
+        <div class="log-header">
+          <h2>
+            Local Emitted Event Stream
+            <span class="pill-count" id="eventCount">0 events</span>
+          </h2>
+          <button class="btn" style="padding: 4px 10px; font-size: 0.72rem;" onclick="clearLocalLogs()">Clear</button>
+        </div>
+        <p class="desc" style="margin-bottom: 8px; font-size: 0.78rem;">
+          Common Event Schema objects emitted by this backend to the monitoring platform:
+        </p>
+        <div class="log-box" id="eventLogBox">
+          <div style="color: #4b5563; font-style: italic;">Waiting for events...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Reset Panel -->
+    <div class="reset-card" style="margin-top: 20px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; gap: 20px; flex-wrap: wrap;">
+        <div>
+          <h2>Reset Demo Environment</h2>
+          <p class="desc" style="margin-bottom: 0;">
+            Clears all generated events, alerts, sessions, and resources. Resets all user statuses to clean baseline.
+          </p>
+        </div>
+        <button class="btn btn-reset" id="btn-reset" onclick="resetDemo(this)" style="min-width: 220px; padding: 10px 16px;">
+          <div>
+            <div>Reset to Clean Baseline</div>
+            <div class="label-desc">Wipe scenario data — alerts return to 0</div>
+          </div>
+          <span style="font-size: 1.1rem; margin-left: 12px;">⟳</span>
+        </button>
+      </div>
+      <div class="reset-status" id="resetStatus"></div>
+    </div>
+  </div>
+
+  <script>
+    let isRunning = false;
+
+    async function triggerScenario(endpoint, btn) {
+      if (isRunning) return;
+      isRunning = true;
+      btn.disabled = true;
+      const originalText = btn.querySelector('div > div:first-child').textContent;
+      btn.querySelector('div > div:first-child').textContent = 'Running...';
+
+      // Animate pipeline
+      animatePipeline();
+
+      try {
+        const res = await fetch(`/demo/${endpoint}`, { method: 'POST' });
+        const data = await res.json();
+        console.log('[Demo] Scenario triggered:', data);
+        setTimeout(fetchEvents, 400);
+        setTimeout(fetchEvents, 1200);
+      } catch (err) {
+        alert('Failed to trigger scenario: ' + err.message);
+      } finally {
+        isRunning = false;
+        btn.disabled = false;
+        btn.querySelector('div > div:first-child').textContent = originalText;
+      }
+    }
+
+    async function resetDemo(btn) {
+      if (!confirm('Reset the demo environment? This will wipe ALL events, alerts, sessions, and resources from the monitoring platform.')) return;
+
+      btn.disabled = true;
+      btn.querySelector('div > div:first-child').textContent = 'Resetting...';
+      const statusEl = document.getElementById('resetStatus');
+      statusEl.textContent = 'Sending reset request to monitoring platform...';
+      statusEl.className = 'reset-status visible';
+
+      try {
+        const res = await fetch('http://localhost:8000/api/reset', { method: 'POST' });
+        const data = await res.json();
+
+        if (res.ok) {
+          statusEl.className = 'reset-status visible success';
+          statusEl.textContent =
+            `✓ Reset complete — deleted ${data.deleted.events} events, ${data.deleted.alerts} alerts, ` +
+            `${data.deleted.sessions} sessions. ${data.reset.users} users restored to baseline.`;
+
+          // Also clear local event buffer display
+          document.getElementById('eventLogBox').innerHTML =
+            '<div style="color: #4b5563; font-style: italic;">Environment reset. Ready for new demonstration.</div>';
+          document.getElementById('eventCount').textContent = '0 events';
+        } else {
+          throw new Error(data.detail || 'Reset failed');
+        }
+      } catch (err) {
+        statusEl.className = 'reset-status visible error';
+        statusEl.textContent = '✗ Reset failed: ' + err.message;
+      } finally {
+        btn.disabled = false;
+        btn.querySelector('div > div:first-child').textContent = 'Reset to Clean Baseline';
+      }
+    }
+
+    function formatLocalTime(iso) {
+      if (!iso) return '';
+      try {
+        const str = String(iso);
+        const hasTz = str.endsWith('Z') || /[+-]\d{2}:?\d{2}$/.test(str);
+        const d = new Date(hasTz ? str : str + 'Z');
+        return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      } catch {
+        return (iso || '').split('T')[1]?.split('.')[0] || iso;
+      }
+    }
+
+    async function fetchEvents() {
+      try {
+        const res = await fetch('/demo/events');
+        const data = await res.json();
+        const box = document.getElementById('eventLogBox');
+        const count = document.getElementById('eventCount');
+
+        if (!data.events || data.events.length === 0) return;
+
+        count.textContent = data.events.length + ' events';
+        box.innerHTML = data.events.map(e => `
+          <div class="log-entry">
+            <span class="log-time">[${formatLocalTime(e.timestamp)}]</span>
+            <span class="log-type">${e.event_type}</span>
+            <span class="log-status ${e.status === 'success' ? 'status-success' : 'status-failed'}">${e.status}</span>
+            <div style="color: #64748b; font-size: 0.7rem; margin-top: 2px;">
+              user: <b style="color:#0f172a">${e.user_id || '—'}</b>
+              | ip: <b style="color:#0f172a">${e.ip}</b>
+              ${e.resource ? '| res: <b style="color:#0f172a">' + e.resource + '</b>' : ''}
+            </div>
+          </div>
+        `).join('');
+      } catch (err) {
+        console.error('Error fetching events:', err);
+      }
+    }
+
+    function clearLocalLogs() {
+      document.getElementById('eventLogBox').innerHTML =
+        '<div style="color: #4b5563; font-style: italic;">Cleared. New events will appear here.</div>';
+    }
+
+    function animatePipeline() {
+      // Pipeline visualizer removed from UI
+    }
+
+    // Poll for generated events every 1.5 seconds
+    setInterval(fetchEvents, 1500);
+    fetchEvents();
+  </script>
+</body>
+</html>
